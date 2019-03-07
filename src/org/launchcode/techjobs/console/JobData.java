@@ -4,12 +4,15 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
+import java.util.LinkedList;
 
 /**
  * Created by LaunchCode
@@ -47,11 +50,10 @@ public class JobData {
     }
 
     public static ArrayList<HashMap<String, String>> findAll() {
-
         // load data, if not already loaded
         loadData();
 
-        return allJobs;
+        return ((ArrayList) allJobs.clone());
     }
 
     /**
@@ -76,14 +78,57 @@ public class JobData {
 
             String aValue = row.get(column);
 
-            if (aValue.contains(value)) {
+            if (aValue.toUpperCase().contains(value.toUpperCase())) {
+                jobs.add(row);
+            }
+        }
+        return (sortByValue(jobs, column));
+    }
+
+
+    public static ArrayList<HashMap<String, String>> findByValue (String value) {
+        // load data, if not already loaded
+        loadData();
+
+        ArrayList<HashMap<String, String>> jobs = new ArrayList<>();
+
+        for (HashMap<String, String> row : allJobs) {
+            boolean match = false;
+            for (String column : row.keySet()) {
+                String aValue = row.get(column);
+
+                if (aValue.toUpperCase().contains(value.toUpperCase())) {
+                    match = true;
+                }
+            }
+            if (match) {
                 jobs.add(row);
             }
         }
 
         return jobs;
+
     }
 
+    public static ArrayList<HashMap<String, String>> sortByValue(ArrayList<HashMap<String, String>> theJobs, String column)
+    {
+        boolean sorted;
+        HashMap<String, String> temp;
+        int j = 1;
+        do {
+            sorted = true;
+            for (int i = 0; i < theJobs.size() - 1; i++) {
+                if (theJobs.get(i).get(column).compareToIgnoreCase(theJobs.get(i+1).get(column)) > 0) {
+                sorted = false;
+                temp = theJobs.get(i);
+                theJobs.set(i, theJobs.get(i+1));
+                theJobs.set(i+1, temp);
+                }
+            }
+          //0  System.out.println("sorting " + j++);
+        } while (!sorted);
+        return theJobs;
+    }
     /**
      * Read in data from a CSV file and store it in a list
      */
